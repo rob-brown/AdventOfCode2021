@@ -1,5 +1,16 @@
 # Day 1: Sonar Sweep
 
+## Dependencies
+
+```elixir
+Mix.install(
+  [
+    {:aoc_common, path: Path.expand("../aoc_common", __DIR__)}
+  ],
+  force: false
+)
+```
+
 ## Part 1
 
 You're minding your own business on a ship at sea when the overboard alarm goes off! You rush to see if you can help. Apparently, one of the Elves tripped and accidentally sent the sleigh keys flying into the ocean!
@@ -53,34 +64,22 @@ In this example, there are 7 measurements that are larger than the previous meas
 <!-- livebook:{"livebook_object":"cell_input","name":"Input File","type":"text","value":"input.txt"} -->
 
 ```elixir
-defmodule Input do
-  @default_path IO.gets("Input File: ") |> String.trim()
-
-  def lines(path \\ nil) do
-    input_path = path || @default_path
-
-    input_path
-    |> Path.expand(__DIR__)
-    |> File.stream!()
-    |> Stream.map(&String.trim_trailing/1)
-    |> Stream.map(&String.to_integer/1)
-  end
-end
-
-Input.lines()
+input_path = IO.gets("Input File: ") |> String.trim() |> Path.expand(__DIR__)
 ```
 
 ```elixir
 defmodule Part1 do
-  def run(path \\ nil) do
+  use AocCommon
+
+  def run(path) do
     path
-    |> Input.lines()
+    |> Input.numbers()
     |> Enum.chunk_every(2, 1, :discard)
     |> Enum.count(fn [x, y] -> y > x end)
   end
 end
 
-Part1.run()
+Part1.run(input_path)
 ```
 
 ## Part 2
@@ -125,9 +124,11 @@ Consider sums of a three-measurement sliding window. **How many sums are larger 
 
 ```elixir
 defmodule Part2 do
-  def run(path \\ nil) do
+  use AocCommon
+
+  def run(path) do
     path
-    |> Input.lines()
+    |> Input.numbers()
     |> Enum.chunk_every(3, 1, :discard)
     |> Enum.map(fn [x, y, z] -> x + y + z end)
     |> Enum.chunk_every(2, 1, :discard)
@@ -135,7 +136,7 @@ defmodule Part2 do
   end
 end
 
-Part2.run()
+Part2.run(input_path)
 ```
 
 ## Test
@@ -146,12 +147,16 @@ ExUnit.start(autorun: false)
 defmodule Day1Tests do
   use ExUnit.Case, async: true
 
-  test "part1" do
-    assert Part1.run("input.txt") == 1557
+  setup do
+    [path: Path.expand("input.txt", __DIR__)]
   end
 
-  test "part2" do
-    assert Part2.run("input.txt") == 1608
+  test "part1", %{path: path} do
+    assert Part1.run(path) == 1557
+  end
+
+  test "part2", %{path: path} do
+    assert Part2.run(path) == 1608
   end
 end
 
