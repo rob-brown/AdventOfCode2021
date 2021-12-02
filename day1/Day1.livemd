@@ -5,7 +5,7 @@
 ```elixir
 Mix.install(
   [
-    {:aoc_common, path: Path.expand("../aoc_common", __DIR__)}
+    {:aoc_common, github: "rob-brown/AdventOfCode2021"}
   ],
   force: false
 )
