@@ -63,14 +63,16 @@ defmodule Part1 do
       path
       |> Input.lines()
       |> Enum.to_list()
-      |> gamma_rate({[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 0})
+      |> gamma_rate()
 
     epsilon = gamma |> Bitwise.bnot() |> Bitwise.band(0xFFF)
 
     gamma * epsilon
   end
 
-  defp gamma_rate([], {bit_counts, total_count}) do
+  defp gamma_rate(lines, bit_counts \\ [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], total_count \\ 0)
+
+  defp gamma_rate([], bit_counts, total_count) do
     half = div(total_count, 2)
 
     bit_counts
@@ -86,7 +88,7 @@ defmodule Part1 do
     |> Enum.sum()
   end
 
-  defp gamma_rate([line | rest], {bit_counts, total_count}) do
+  defp gamma_rate([line | rest], bit_counts, total_count) do
     new_counts =
       line
       |> String.graphemes()
@@ -99,7 +101,7 @@ defmodule Part1 do
           count
       end)
 
-    gamma_rate(rest, {new_counts, total_count + 1})
+    gamma_rate(rest, new_counts, total_count + 1)
   end
 end
 
