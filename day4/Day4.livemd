@@ -1,0 +1,267 @@
+# Day 4: Giant Squid
+
+## Dependencies
+
+```elixir
+Mix.install(
+  [
+    {:aoc_common, github: "rob-brown/AdventOfCode2021"}
+  ],
+  force: false
+)
+```
+
+## Part 1
+
+You're already almost 1.5km (almost a mile) below the surface of the ocean, already so deep that you can't see any sunlight. What you can see, however, is a giant squid that has attached itself to the outside of your submarine.
+
+Maybe it wants to play bingo?
+
+Bingo is played on a set of boards each consisting of a 5x5 grid of numbers. Numbers are chosen at random, and the chosen number is marked on all boards on which it appears. (Numbers may not appear on all boards.) If all numbers in any row or any column of a board are marked, that board wins. (Diagonals don't count.)
+
+The submarine has a **bingo subsystem** to help passengers (currently, you and the giant squid) pass the time. It automatically generates a random order in which to draw numbers and a random set of boards (your puzzle input). For example:
+
+```
+7,4,9,5,11,17,23,2,0,14,21,24,10,16,13,6,15,25,12,22,18,20,8,19,3,26,1
+
+22 13 17 11  0
+ 8  2 23  4 24
+21  9 14 16  7
+ 6 10  3 18  5
+ 1 12 20 15 19
+
+ 3 15  0  2 22
+ 9 18 13 17  5
+19  8  7 25 23
+20 11 10 24  4
+14 21 16 12  6
+
+14 21 17 24  4
+10 16 15  9 19
+18  8 23 26 20
+22 11 13  6  5
+ 2  0 12  3  7
+```
+
+After the first five numbers are drawn (`7`, `4`, `9`, `5`, and `11`), there are no winners, but the boards are marked as follows (shown here adjacent to each other to save space):
+
+```
+22 13 17 11  0         3 15  0  2 22        14 21 17 24  4
+ 8  2 23  4 24         9 18 13 17  5        10 16 15  9 19
+21  9 14 16  7        19  8  7 25 23        18  8 23 26 20
+ 6 10  3 18  5        20 11 10 24  4        22 11 13  6  5
+ 1 12 20 15 19        14 21 16 12  6         2  0 12  3  7
+```
+
+After the next six numbers are drawn (`17`, `23`, `2`, `0`, `14`, and `21`), there are still no winners:
+
+```
+22 13 17 11  0         3 15  0  2 22        14 21 17 24  4
+ 8  2 23  4 24         9 18 13 17  5        10 16 15  9 19
+21  9 14 16  7        19  8  7 25 23        18  8 23 26 20
+ 6 10  3 18  5        20 11 10 24  4        22 11 13  6  5
+ 1 12 20 15 19        14 21 16 12  6         2  0 12  3  7
+```
+
+Finally, `24` is drawn:
+
+```
+22 13 17 11  0         3 15  0  2 22        14 21 17 24  4
+ 8  2 23  4 24         9 18 13 17  5        10 16 15  9 19
+21  9 14 16  7        19  8  7 25 23        18  8 23 26 20
+ 6 10  3 18  5        20 11 10 24  4        22 11 13  6  5
+ 1 12 20 15 19        14 21 16 12  6         2  0 12  3  7
+```
+
+At this point, the third board wins because it has at least one complete row or column of marked numbers (in this case, the entire top row is marked: `14 21 17 24 4`).
+
+The **score** of the winning board can now be calculated. Start by finding the **sum of all unmarked numbers** on that board; in this case, the sum is `188`. Then, multiply that sum by **the number that was just called** when the board won, 24, to get the final score, `188 * 24 = 4512`.
+
+To guarantee victory against the giant squid, figure out which board will win first. **What will your final score be if you choose that board?**
+
+<!-- livebook:{"livebook_object":"cell_input","name":"Input File","type":"text","value":"input.txt"} -->
+
+```elixir
+input_path = IO.gets("Input File: ") |> String.trim() |> Path.expand(__DIR__)
+```
+
+```elixir
+defmodule Bingo do
+  defstruct [:numbers, :marks]
+
+  def new(string) do
+    lines = string |> String.split("\n") |> Enum.with_index()
+
+    numbers =
+      for {l, y} <- lines do
+        numbers =
+          l
+          |> String.split(" ", trim: true)
+          |> Enum.map(&String.to_integer/1)
+          |> Enum.with_index()
+
+        for {n, x} <- numbers do
+          {n, {x, y}}
+        end
+      end
+      |> List.flatten()
+      |> Map.new()
+
+    %__MODULE__{numbers: numbers, marks: MapSet.new()}
+  end
+
+  def mark(board, number) do
+    case board.numbers[number] do
+      nil ->
+        board
+
+      point ->
+        %__MODULE__{board | marks: MapSet.put(board.marks, point)}
+    end
+  end
+
+  def bingo?(board) do
+    row_bingo?(board) || column_bingo?(board)
+  end
+
+  defp row_bingo?(board) do
+    Enum.any?(0..4, fn y ->
+      Enum.all?(0..4, fn x ->
+        {x, y} in board.marks
+      end)
+    end)
+  end
+
+  defp column_bingo?(board) do
+    Enum.any?(0..4, fn x ->
+      Enum.all?(0..4, fn y ->
+        {x, y} in board.marks
+      end)
+    end)
+  end
+
+  def sum_of_unmarked_numbers(board) do
+    for {n, point} <- board.numbers do
+      if point in board.marks do
+        0
+      else
+        n
+      end
+    end
+    |> Enum.sum()
+  end
+
+  def to_string(board) do
+    board.numbers
+    |> Enum.sort_by(fn {_n, {x, y}} -> {y, x} end)
+    |> Enum.map(fn {n, point} ->
+      string = n |> Kernel.to_string() |> String.pad_leading(2)
+
+      color =
+        if point in board.marks do
+          IO.ANSI.green()
+        else
+          IO.ANSI.red()
+        end
+
+      IO.iodata_to_binary([color, string, IO.ANSI.reset()])
+    end)
+    |> Enum.chunk_every(5)
+    |> Enum.each(fn numbers ->
+      numbers |> Enum.join("\t") |> IO.puts()
+    end)
+  end
+end
+```
+
+```elixir
+defmodule Part1 do
+  use AocCommon
+
+  def run(path) do
+    [numbers | boards] = path |> Input.raw() |> String.split("\n\n")
+    numbers = numbers |> String.split(",") |> Enum.map(&String.to_integer/1)
+    boards = boards |> Enum.map(&Bingo.new/1)
+
+    find_winner(numbers, boards)
+  end
+
+  defp find_winner([number | rest], boards) do
+    boards = Enum.map(boards, &Bingo.mark(&1, number))
+
+    case Enum.filter(boards, &Bingo.bingo?/1) do
+      [winner] ->
+        Bingo.sum_of_unmarked_numbers(winner) * number
+
+      [] ->
+        find_winner(rest, boards)
+    end
+  end
+end
+
+Part1.run(input_path)
+```
+
+## Part 2
+
+On the other hand, it might be wise to try a different strategy: let the giant squid win.
+
+You aren't sure how many bingo boards a giant squid could play at once, so rather than waste time counting its arms, the safe thing to do is to figure out which board will win last and choose that one. That way, no matter which boards it picks, it will win for sure.
+
+In the above example, the second board is the last to win, which happens after 13 is eventually called and its middle column is completely marked. If you were to keep playing until this point, the second board would have a sum of unmarked numbers equal to 148 for a final score of 148 * 13 = 1924.
+
+Figure out which board will win last. Once it wins, what would its final score be?
+
+```elixir
+defmodule Part2 do
+  use AocCommon
+
+  def run(path) do
+    [numbers | boards] = path |> Input.raw() |> String.split("\n\n")
+    numbers = numbers |> String.split(",") |> Enum.map(&String.to_integer/1)
+    boards = boards |> Enum.map(&Bingo.new/1)
+
+    find_loser(numbers, boards)
+  end
+
+  defp find_loser([number | rest], boards) do
+    new_boards = Enum.map(boards, &Bingo.mark(&1, number))
+
+    case Enum.reject(new_boards, &Bingo.bingo?/1) do
+      [] ->
+        [loser] = Enum.reject(boards, &Bingo.bingo?/1)
+        loser = Bingo.mark(loser, number)
+        Bingo.sum_of_unmarked_numbers(loser) * number
+
+      _ ->
+        find_loser(rest, new_boards)
+    end
+  end
+end
+
+Part2.run(input_path)
+```
+
+## Test
+
+```elixir
+ExUnit.start(autorun: false)
+
+defmodule Day3Tests do
+  use ExUnit.Case, async: true
+
+  setup do
+    [path: Path.expand("input.txt", __DIR__)]
+  end
+
+  test "part1", %{path: path} do
+    assert Part1.run(path) == 58_412
+  end
+
+  test "part2", %{path: path} do
+    assert Part2.run(path) == 10_030
+  end
+end
+
+ExUnit.run()
+```

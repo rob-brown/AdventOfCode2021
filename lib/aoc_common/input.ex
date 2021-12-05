@@ -1,4 +1,8 @@
 defmodule AocCommon.Input do
+  def raw(path) do
+    File.read!(path)
+  end
+
   def lines(path) do
     path
     |> File.stream!()
