@@ -6,6 +6,7 @@ defmodule AocCommon do
   defmacro __using__(_) do
     quote do
       alias AocCommon.Input
+      alias AocCommon.CountedSet
     end
   end
 end
