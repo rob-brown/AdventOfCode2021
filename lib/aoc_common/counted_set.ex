@@ -11,8 +11,12 @@ defmodule AocCommon.CountedSet do
     end
   end
 
-  def put(%__MODULE__{internal_map: map}, key) do
-    new_map = Map.update(map, key, 1, &(&1 + 1))
+  def put(set, key) do
+    put_many(set, key, 1)
+  end
+
+  def put_many(%__MODULE__{internal_map: map}, key, n) do
+    new_map = Map.update(map, key, n, &(&1 + n))
     %__MODULE__{internal_map: new_map}
   end
 
