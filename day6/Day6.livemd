@@ -5,10 +5,15 @@
 ```elixir
 Mix.install(
   [
-    {:aoc_common, github: "rob-brown/AdventOfCode2021"}
+    {:aoc_common, github: "rob-brown/AdventOfCode2021"},
+    {:kino, "~> 0.4.0"}
   ],
   force: false
 )
+```
+
+```elixir
+input = Kino.Input.textarea("Please paste your input file:")
 ```
 
 ## Part 1
@@ -69,19 +74,12 @@ In this example, after 18 days, there are a total of `26` fish. After 80 days, t
 
 Find a way to simulate lanternfish. **How many lanternfish would there be after 80 days?**
 
-<!-- livebook:{"livebook_object":"cell_input","name":"Input File","type":"text","value":"input.txt"} -->
-
-```elixir
-input_path = IO.gets("Input File: ") |> String.trim() |> Path.expand(__DIR__)
-```
-
 ```elixir
 defmodule Part1 do
   use AocCommon
 
-  def run(path) do
-    path
-    |> Input.raw()
+  def run(input) do
+    input
     |> String.trim_trailing()
     |> String.split(",")
     |> Enum.map(&String.to_integer/1)
@@ -106,7 +104,9 @@ defmodule Part1 do
   end
 end
 
-Part1.run(input_path)
+input
+|> Kino.Input.read()
+|> Part1.run()
 ```
 
 ## Part 2
@@ -121,9 +121,8 @@ After 256 days in the example above, there would be a total of **`26984457539`**
 defmodule Part2 do
   use AocCommon
 
-  def run(path) do
-    path
-    |> Input.raw()
+  def run(input) do
+    input
     |> String.trim_trailing()
     |> String.split(",")
     |> Enum.map(&String.to_integer/1)
@@ -149,7 +148,9 @@ defmodule Part2 do
   end
 end
 
-Part2.run(input_path)
+input
+|> Kino.Input.read()
+|> Part2.run()
 ```
 
 ## Test
@@ -160,16 +161,12 @@ ExUnit.start(autorun: false)
 defmodule Day6Tests do
   use ExUnit.Case, async: true
 
-  setup do
-    [path: Path.expand("input.txt", __DIR__)]
+  test "part1" do
+    assert Part1.run("3,4,3,1,2") == 5934
   end
 
-  test "part1", %{path: path} do
-    assert Part1.run(path) == 352_195
-  end
-
-  test "part2", %{path: path} do
-    assert Part2.run(path) == 1_600_306_001_288
+  test "part2" do
+    assert Part2.run("3,4,3,1,2") == 26_984_457_539
   end
 end
 
