@@ -5,10 +5,15 @@
 ```elixir
 Mix.install(
   [
-    {:aoc_common, github: "rob-brown/AdventOfCode2021"}
+    {:aoc_common, github: "rob-brown/AdventOfCode2021"},
+    {:kino, "~> 0.4.0"}
   ],
   force: false
 )
+```
+
+```elixir
+input = Kino.Input.textarea("Please paste your input file:")
 ```
 
 ## Part 1
@@ -58,20 +63,14 @@ To avoid the most dangerous areas, you need to determine **the number of points 
 
 Consider only horizontal and vertical lines. **At how many points do at least two lines overlap?**
 
-<!-- livebook:{"livebook_object":"cell_input","name":"Input File","type":"text","value":"input.txt"} -->
-
-```elixir
-input_path = IO.gets("Input File: ") |> String.trim() |> Path.expand(__DIR__)
-```
-
 ```elixir
 defmodule Part1 do
   use AocCommon
 
-  def run(path) do
+  def run(input) do
     entries =
-      path
-      |> Input.lines()
+      input
+      |> String.split("\n", trim: true)
       |> Enum.map(&parse_line/1)
       |> Enum.filter(fn [[a, b], [c, d]] -> a == c or b == d end)
 
@@ -102,7 +101,9 @@ defmodule Part1 do
   end
 end
 
-Part1.run(input_path)
+input
+|> Kino.Input.read()
+|> Part1.run()
 ```
 
 ## Part 2
@@ -137,10 +138,10 @@ Consider all of the lines. **At how many points do at least two lines overlap?**
 defmodule Part2 do
   use AocCommon
 
-  def run(path) do
+  def run(input) do
     entries =
-      path
-      |> Input.lines()
+      input
+      |> String.split("\n", trim: true)
       |> Enum.map(&parse_line/1)
 
     for [[x1, y1], [x2, y2]] <- entries do
@@ -170,7 +171,9 @@ defmodule Part2 do
   end
 end
 
-Part2.run(input_path)
+input
+|> Kino.Input.read()
+|> Part2.run()
 ```
 
 ## Test
@@ -182,15 +185,28 @@ defmodule Day5Tests do
   use ExUnit.Case, async: true
 
   setup do
-    [path: Path.expand("input.txt", __DIR__)]
+    input = """
+    0,9 -> 5,9
+    8,0 -> 0,8
+    9,4 -> 3,4
+    2,2 -> 2,1
+    7,0 -> 7,4
+    6,4 -> 2,0
+    0,9 -> 2,9
+    3,4 -> 1,4
+    0,0 -> 8,8
+    5,5 -> 8,2
+    """
+
+    [input: input]
   end
 
-  test "part1", %{path: path} do
-    assert Part1.run(path) == 4_728
+  test "part1", %{input: input} do
+    assert Part1.run(input) == 5
   end
 
-  test "part2", %{path: path} do
-    assert Part2.run(path) == 17_717
+  test "part2", %{input: input} do
+    assert Part2.run(input) == 12
   end
 end
 
