@@ -247,7 +247,7 @@ Part2.run(input_path)
 ```elixir
 ExUnit.start(autorun: false)
 
-defmodule Day3Tests do
+defmodule Day4Tests do
   use ExUnit.Case, async: true
 
   setup do
