@@ -7,6 +7,7 @@ defmodule AocCommon do
     quote do
       alias AocCommon.Input
       alias AocCommon.CountedSet
+      alias AocCommon.Deque
     end
   end
 end
