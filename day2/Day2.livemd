@@ -5,10 +5,15 @@
 ```elixir
 Mix.install(
   [
-    {:aoc_common, github: "rob-brown/AdventOfCode2021"}
+    {:aoc_common, github: "rob-brown/AdventOfCode2021"},
+    {:kino, "~> 0.4.0"}
   ],
   force: false
 )
+```
+
+```elixir
+input = Kino.Input.textarea("Please paste your input file:")
 ```
 
 ## Part 1
@@ -47,20 +52,14 @@ After following these instructions, you would have a horizontal position of `15`
 
 Calculate the horizontal position and depth you would have after following the planned course. **What do you get if you multiply your final horizontal position by your final depth?**
 
-<!-- livebook:{"livebook_object":"cell_input","name":"Input File","type":"text","value":"input.txt"} -->
-
-```elixir
-input_path = IO.gets("Input File: ") |> String.trim() |> Path.expand(__DIR__)
-```
-
 ```elixir
 defmodule Part1 do
   use AocCommon
 
-  def run(path) do
+  def run(input) do
     {x, y} =
-      path
-      |> Input.lines()
+      input
+      |> String.split("\n", trim: true)
       |> Enum.to_list()
       |> navigate({0, 0})
 
@@ -92,7 +91,9 @@ defmodule Part1 do
   end
 end
 
-Part1.run(input_path)
+input
+|> Kino.Input.read()
+|> Part1.run()
 ```
 
 ## Part 2
@@ -126,10 +127,10 @@ Using this new interpretation of the commands, calculate the horizontal position
 defmodule Part2 do
   use AocCommon
 
-  def run(path) do
+  def run(input) do
     {x, y, _} =
-      path
-      |> Input.lines()
+      input
+      |> String.split("\n", trim: true)
       |> Enum.to_list()
       |> navigate({0, 0, 0})
 
@@ -161,7 +162,9 @@ defmodule Part2 do
   end
 end
 
-Part2.run(input_path)
+input
+|> Kino.Input.read()
+|> Part2.run()
 ```
 
 ## Test
@@ -173,15 +176,24 @@ defmodule Day2Tests do
   use ExUnit.Case, async: true
 
   setup do
-    [path: Path.expand("input.txt", __DIR__)]
+    input = """
+    forward 5
+    down 5
+    forward 8
+    up 3
+    down 8
+    forward 2
+    """
+
+    [input: input]
   end
 
-  test "part1", %{path: path} do
-    assert Part1.run(path) == 2_039_912
+  test "part1", %{input: input} do
+    assert Part1.run(input) == 150
   end
 
-  test "part2", %{path: path} do
-    assert Part2.run(path) == 1_942_068_080
+  test "part2", %{input: input} do
+    assert Part2.run(input) == 900
   end
 end
 
