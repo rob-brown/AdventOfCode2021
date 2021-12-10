@@ -5,10 +5,15 @@
 ```elixir
 Mix.install(
   [
-    {:aoc_common, github: "rob-brown/AdventOfCode2021"}
+    {:aoc_common, github: "rob-brown/AdventOfCode2021"},
+    {:kino, "~> 0.4.0"}
   ],
   force: false
 )
+```
+
+```elixir
+input = Kino.Input.textarea("Please paste your input file:")
 ```
 
 ## Part 1
@@ -61,25 +66,22 @@ In this example, there are 7 measurements that are larger than the previous meas
 
 **How many measurements are larger than the previous measurement?**
 
-<!-- livebook:{"livebook_object":"cell_input","name":"Input File","type":"text","value":"input.txt"} -->
-
-```elixir
-input_path = IO.gets("Input File: ") |> String.trim() |> Path.expand(__DIR__)
-```
-
 ```elixir
 defmodule Part1 do
   use AocCommon
 
-  def run(path) do
-    path
-    |> Input.numbers()
+  def run(input) do
+    input
+    |> String.split("\n", trim: true)
+    |> Enum.map(&String.to_integer/1)
     |> Enum.chunk_every(2, 1, :discard)
     |> Enum.count(fn [x, y] -> y > x end)
   end
 end
 
-Part1.run(input_path)
+input
+|> Kino.Input.read()
+|> Part1.run()
 ```
 
 ## Part 2
@@ -126,9 +128,10 @@ Consider sums of a three-measurement sliding window. **How many sums are larger 
 defmodule Part2 do
   use AocCommon
 
-  def run(path) do
-    path
-    |> Input.numbers()
+  def run(input) do
+    input
+    |> String.split("\n", trim: true)
+    |> Enum.map(&String.to_integer/1)
     |> Enum.chunk_every(3, 1, :discard)
     |> Enum.map(fn [x, y, z] -> x + y + z end)
     |> Enum.chunk_every(2, 1, :discard)
@@ -136,7 +139,9 @@ defmodule Part2 do
   end
 end
 
-Part2.run(input_path)
+input
+|> Kino.Input.read()
+|> Part2.run()
 ```
 
 ## Test
@@ -148,15 +153,28 @@ defmodule Day1Tests do
   use ExUnit.Case, async: true
 
   setup do
-    [path: Path.expand("input.txt", __DIR__)]
+    input = """
+    199
+    200
+    208
+    210
+    200
+    207
+    240
+    269
+    260
+    263
+    """
+
+    [input: input]
   end
 
-  test "part1", %{path: path} do
-    assert Part1.run(path) == 1557
+  test "part1", %{input: input} do
+    assert Part1.run(input) == 7
   end
 
-  test "part2", %{path: path} do
-    assert Part2.run(path) == 1608
+  test "part2", %{input: input} do
+    assert Part2.run(input) == 5
   end
 end
 
