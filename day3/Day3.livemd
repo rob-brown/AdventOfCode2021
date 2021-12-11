@@ -5,10 +5,15 @@
 ```elixir
 Mix.install(
   [
-    {:aoc_common, github: "rob-brown/AdventOfCode2021"}
+    {:aoc_common, github: "rob-brown/AdventOfCode2021"},
+    {:kino, "~> 0.4.0"}
   ],
   force: false
 )
+```
+
+```elixir
+input = Kino.Input.textarea("Please paste your input file:")
 ```
 
 ## Part 1
@@ -48,24 +53,21 @@ The epsilon rate is calculated in a similar way; rather than use the most common
 
 Use the binary numbers in your diagnostic report to calculate the gamma rate and epsilon rate, then multiply them together. **What is the power consumption of the submarine?** (Be sure to represent your answer in decimal, not binary.)
 
-<!-- livebook:{"livebook_object":"cell_input","name":"Input File","type":"text","value":"input.txt"} -->
-
-```elixir
-input_path = IO.gets("Input File: ") |> String.trim() |> Path.expand(__DIR__)
-```
-
 ```elixir
 defmodule Part1 do
   use AocCommon
 
-  def run(path) do
+  def run(input) do
+    lines = String.split(input, "\n", trim: true)
+
     gamma =
-      path
-      |> Input.lines()
+      lines
       |> Enum.to_list()
       |> gamma_rate()
 
-    epsilon = gamma |> Bitwise.bnot() |> Bitwise.band(0xFFF)
+    bits = lines |> hd() |> String.length()
+    mask = Bitwise.bsl(1, bits) - 1
+    epsilon = gamma |> Bitwise.bnot() |> Bitwise.band(mask)
 
     gamma * epsilon
   end
@@ -105,7 +107,9 @@ defmodule Part1 do
   end
 end
 
-Part1.run(input_path)
+input
+|> Kino.Input.read()
+|> Part1.run()
 ```
 
 ## Part 2
@@ -147,10 +151,10 @@ Use the binary numbers in your diagnostic report to calculate the oxygen generat
 defmodule Part2 do
   use AocCommon
 
-  def run(path) do
+  def run(input) do
     bits_list =
-      path
-      |> Input.lines()
+      input
+      |> String.split("\n", trim: true)
       |> Enum.to_list()
       |> Enum.map(&string_to_bits/1)
 
@@ -204,7 +208,9 @@ defmodule Part2 do
   end
 end
 
-Part2.run(input_path)
+input
+|> Kino.Input.read()
+|> Part2.run()
 ```
 
 ## Test
@@ -216,15 +222,30 @@ defmodule Day3Tests do
   use ExUnit.Case, async: true
 
   setup do
-    [path: Path.expand("input.txt", __DIR__)]
+    input = """
+    00100
+    11110
+    10110
+    10111
+    10101
+    01111
+    00111
+    11100
+    10000
+    11001
+    00010
+    01010
+    """
+
+    [input: input]
   end
 
-  test "part1", %{path: path} do
-    assert Part1.run(path) == 2_743_844
+  test "part1", %{input: input} do
+    assert Part1.run(input) == 198
   end
 
-  test "part2", %{path: path} do
-    assert Part2.run(path) == 6_677_951
+  test "part2", %{input: input} do
+    assert Part2.run(input) == 230
   end
 end
 
